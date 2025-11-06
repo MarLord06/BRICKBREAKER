@@ -25,6 +25,10 @@ class HeuristicAI:
         if dy <= 0:
             return self.frame_width / 2
         
+        # Si dx es casi 0 (vertical), quedarse bajo la pelota
+        if abs(dx) < 0.3:
+            return np.clip(ball_x, 25, self.frame_width - 25)
+        
         # Simular trayectoria
         sim_x = float(ball_x)
         sim_y = float(ball_y)

@@ -10,8 +10,8 @@ def game(ai_mode='manual', collect_data=False):
     ai_mode: 'manual', 'heuristic', 'neural'
     collect_data: True para guardar datos durante el juego
     """
-    BALL_SPEED = 5
-    dx, dy = 4, -3
+    BALL_SPEED = 6  # Aumentado de 5 a 6 para más velocidad
+    dx, dy = 5, -4  # Velocidades iniciales más altas
     x1, y1, x2, y2 = 90, 150, 100, 160
     y6 = 410
     f = 0
@@ -25,7 +25,7 @@ def game(ai_mode='manual', collect_data=False):
                            min_tracking_confidence=0.5,
                            max_num_hands=1)
 
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     ret, frame = cap.read()
     if not ret:
         print("Error: No se pudo acceder a la cámara")
@@ -176,6 +176,9 @@ def game(ai_mode='manual', collect_data=False):
                         dy = abs(dy)
                         x11[i][j] = []
                         f += 1
+                        # Agregar un poco de velocidad horizontal aleatoria al romper ladrillos
+                        if abs(dx) < 2:
+                            dx += np.random.choice([-1, 1]) * 0.8
                         break
 
         # Rebote con la paleta
@@ -183,8 +186,14 @@ def game(ai_mode='manual', collect_data=False):
             if (x3 - 25) <= (x1 + x2) / 2 <= (x3 + 25):
                 dy = -abs(dy)
                 offset = ((x1 + x2) / 2 - x3) / 25
-                dx += offset * 2
+                dx += offset * 3  # Aumentado de 2 a 3 para más efecto
                 dx = np.clip(dx, -6, 6)
+        
+        # PROTECCIÓN GLOBAL: Forzar velocidad horizontal mínima SIEMPRE
+        MIN_HORIZONTAL_SPEED = 1.0
+        if abs(dx) < MIN_HORIZONTAL_SPEED:
+            # Mantener dirección pero forzar velocidad mínima
+            dx = MIN_HORIZONTAL_SPEED if dx >= 0 else -MIN_HORIZONTAL_SPEED
 
         # Game Over
         if y2 > y6 + 15:
@@ -235,7 +244,7 @@ def game(ai_mode='manual', collect_data=False):
                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 1)
 
         cv2.imshow("Brick Breaker", frame)
-        k = cv2.waitKey(5) & 0xFF
+        k = cv2.waitKey(1) & 0xFF  # Cambiado de 5 a 1 para más velocidad
         if k == 27:  # ESC
             break
         elif k in [ord('q'), ord('Q')]:  # Q para salir y guardar
